@@ -21,7 +21,8 @@ const sectionsData = [
         citation: "(2005) 5 SCC 554",
         summary: "Clarified distinction between grievous hurt and attempt to murder."
       }
-    ]
+    ],
+
   },
   {
     sectionNumber: "302",
@@ -254,7 +255,9 @@ const sectionsData = [
         citation: "(2014) 8 SCC 273",
         summary: "Guidelines issued to prevent misuse of arrests under 498A."
       }
-    ]
+    ],
+    tags:["domestic violence", "husband", "relatives", "dowry harassment", "cruelty", "woman abuse", "marital cruelty", "family abuse", "wife", "harassment"]
+
   },
   {
     sectionNumber: "304B",
@@ -347,7 +350,9 @@ const sectionsData = [
         citation: "1998 SC",
         summary: "Clarified rash driving standards."
       }
-    ]
+    ],
+    tags:["rash driving", "accident", "road safety", "vehicle", "injury", "reckless driving", "traffic violation", "driving offense", "public safety"]
+
   },
   {
     sectionNumber: "337",
@@ -526,7 +531,9 @@ const sectionsData = [
         citation: "AIR 2005 SC 3996",
         summary: "Established that severity of injury is not the only factor; intent matters."
       }
-    ]
+    ],
+    tags:["attempt to murder", "stab", "knife", "shoot", "intent to kill", "life-threatening", "injury", "violence", "attack"]
+
   },
   {
     sectionNumber: "376",
@@ -586,7 +593,9 @@ const sectionsData = [
         citation: "1995 SCC (6) 194",
         summary: "Senior police officer convicted for outraging a woman's modesty."
       }
-    ]
+    ],
+    tags:["sexual assault", "outraging modesty", "woman", "molestation", "harassment", "groping", "indecent behavior", "assault", "physical attack"]
+
   },
   {
     sectionNumber: "363",
@@ -737,6 +746,7 @@ const sectionsData = [
         summary: "Highlighted circumstantial evidence in theft cases."
       }
     ]
+
   },
   {
     sectionNumber: "394",
@@ -824,7 +834,9 @@ const sectionsData = [
         citation: "(2014) 8 SCC 273",
         summary: "Guidelines to prevent unnecessary arrests under Section 498A IPC."
       }
-    ]
+    ],
+    tags:["arrest", "warrant", "cognizable offense", "police", "procedure", "rights", "suspect", "legal procedure", "arrest memo"]
+
   },
   {
     sectionNumber: "91",

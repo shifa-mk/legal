@@ -54,7 +54,55 @@ export const deleteSection = async (req, res) => {
   }
 };
 
-// Search sections
+
+// controllers/sectionControllers.js
+
+
+
+// Keyword categories for better relevance
+const keywordMap = {
+  murder: ["murder", "kill", "homicide"],
+  rape: ["rape", "sexual assault", "molest", "outrage modesty"],
+  theft: ["steal", "stolen", "theft", "rob", "burglary"],
+  fraud: ["cheat", "fraud", "scam", "dishonest"],
+  violence: ["attack", "assault", "injury", "beat", "hurt"],
+  cyber: ["hacking", "cyber", "phishing", "identity theft"],
+  dowry: ["dowry", "cruelty", "harassment", "domestic"],
+};
+
+
+import { cosineSimilarity } from "../utils/embedding.js";
+
+export const askAI = async (req, res) => {
+  try {
+    const { query } = req.body;
+    if (!query?.trim()) return res.status(400).json({ message: "Query is required" });
+
+    // Embed query
+    const queryVec = await embedText(query);
+
+    // Load all sections with embeddings
+    const sections = await Section.find({ embedding: { $exists: true, $ne: [] } }).lean();
+
+    // Compute similarity
+    const results = sections.map(s => ({
+      section: s,
+      score: cosineSimilarity(queryVec, s.embedding),
+    }));
+
+    results.sort((a, b) => b.score - a.score);
+
+    const matchedSections = results.slice(0, 3).map(r => r.section);
+
+    res.json({ query, matchedSections });
+  } catch (err) {
+    console.error("askAI error:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
+
+
 export const searchSections = async (req, res) => {
   try {
     const query = req.query.q;
@@ -62,14 +110,17 @@ export const searchSections = async (req, res) => {
       $or: [
         { sectionNumber: { $regex: query, $options: "i" } },
         { sectionName: { $regex: query, $options: "i" } },
+        { description: { $regex: query, $options: "i" } },
         { lawType: { $regex: query, $options: "i" } },
+        { tags: { $regex: query, $options: "i" } },
       ],
-    });
+    }).limit(10);
     res.json(results);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
+
 
 // Get section by sectionNumber
 export const getSectionByNumber = async (req, res) => {

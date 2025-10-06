@@ -17,10 +17,10 @@ const sectionSchema = new mongoose.Schema({
       citation: String,
       summary: String
     }
-  ]
+  ],
+  tags: [String],  // ✅ Add this line for keywords like 'theft', 'laptop', 'phone', etc.
+  embedding: { type: [Number], default: [] }
 });
-
 
 const Section = mongoose.model("Section", sectionSchema);
 export default Section;
-

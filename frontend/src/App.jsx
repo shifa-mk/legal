@@ -7,6 +7,7 @@ import SectionDetails from "./pages/SectionDetails.jsx";
 import Section from "./pages/Section.jsx";
 import Navbar from "./components/Navbar.jsx";
 import Signup from "./pages/SignUp.jsx";
+import Profile from "./components/Profile.jsx";
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
       <div >
         <Routes>
           <Route path="/" element={<Login />} />
+           <Route path="/profile" element={<Profile />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/dashboard" element={<PoliceDashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
