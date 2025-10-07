@@ -112,11 +112,11 @@ export default function Navbar() {
                               ? user.profile.avatar
                               : getCloudinaryUrl(user.profile.avatar)
                           }
-                          alt={user.fullname || "User"}
+                          alt={user.fullname || user.username || "User"}
                         />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center bg-primary text-primary-foreground">
-                          {user?.fullname?.charAt(0) || "U"}
+                          {(user?.fullname || user?.username || "U").charAt(0)}
                         </div>
                       )}
                     </Avatar>
@@ -124,8 +124,10 @@ export default function Navbar() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end">
                   <DropdownMenuLabel>
-                    <p className="text-sm font-medium">{user.fullname}</p>
-                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                    <p className="text-sm font-medium">{user.fullname || user.username}</p>
+                    {user.email && (
+                      <p className="text-xs text-muted-foreground">{user.email}</p>
+                    )}
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>

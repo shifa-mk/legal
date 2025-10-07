@@ -7,7 +7,7 @@ import { Button } from "../components/ui/button";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 // FIX: Corrected relative import paths.
-import api from "../utils/axios"; 
+import api, { setAuthToken } from "../utils/axios"; 
 import { setUser, setLoading } from "../redux/auth.slice";
 // FIX: Added useSelector to retrieve Redux loading state, which was missing.
 import { useDispatch, useSelector } from "react-redux"; 
@@ -26,23 +26,21 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      // Use Redux loading state only
       dispatch(setLoading(true));
 
-      const { data } = await api.post("/api/auth/login", input, {
-        withCredentials: true,
-      });
+      const { data } = await api.post("api/auth/login", input);
 
-      if (data.token) {
-        localStorage.setItem("user", JSON.stringify(data.user));
-        dispatch(setUser(data.user));
+      const userPayload = data.user || (data.username ? { _id: data._id, username: data.username, role: data.role } : null);
+
+      if (data.token && userPayload) {
+        setAuthToken(data.token);
+        dispatch(setUser(userPayload));
         toast.success("✅ Successfully logged in!");
         navigate("/dashboard");
       }
     } catch (err) {
       toast.error(err.response?.data?.message || "Login failed");
     } finally {
-      // Use Redux loading state only
       dispatch(setLoading(false));
     }
   };
