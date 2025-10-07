@@ -17,30 +17,27 @@ import axios from "axios";
 import { USER_API_END_POINT } from "../utils/constant.js";
 import { setUser } from "../redux/auth.slice.js";
 
-
-
 const getCloudinaryUrl = (publicId) =>
   `https://res.cloudinary.com/dihk6mdzv/image/upload/${publicId}`;
 
 export default function Navbar() {
-  const { user } = useSelector((store) => store.auth);
+  const { user } = useSelector((state) => state.auth);
+  
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const logoutHandler = async () => {
     try {
-      const res = await axios.get(`${USER_API_END_POINT}/logout`, {
-        withCredentials: true,
-      });
-      if (res.data.success) {
-        dispatch(setUser(null));
-        navigate("/");
-        toast.success(res.data.message);
-      }
+      await axios.get(`${USER_API_END_POINT}/logout`, { withCredentials: true });
+      dispatch(setUser(null));
+      localStorage.removeItem("user");
+      toast.success("Logged out successfully!");
+      navigate("/");
     } catch (error) {
-      toast.error(error.response?.data?.message || "Logout failed");
+      toast.error(error?.response?.data?.message || "Logout failed");
     }
   };
+
 
   const navLinks = [
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -53,7 +50,7 @@ export default function Navbar() {
       <div className="flex items-center justify-between max-w-7xl mx-auto h-16 px-4">
         {/* Logo / Brand */}
         <Link to="/" className="text-2xl font-bold flex items-center gap-2">
-          ⚖️ <span>LegalAI Assist</span>
+          ⚖️ <span>LegalMind</span>
         </Link>
 
         {/* Navigation Links */}
@@ -80,9 +77,7 @@ export default function Navbar() {
                 </Button>
               </Link>
               <Link to="/signup">
-                <Button className="bg-red-600 hover:bg-red-700">
-                  Signup
-                </Button>
+                <Button className="bg-red-600 hover:bg-red-700">Signup</Button>
               </Link>
             </div>
           ) : (
@@ -105,7 +100,10 @@ export default function Navbar() {
               {/* Profile Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                  <Button
+                    variant="ghost"
+                    className="relative h-10 w-10 rounded-full"
+                  >
                     <Avatar className="h-10 w-10">
                       {user?.profile?.avatar ? (
                         <AvatarImage

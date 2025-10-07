@@ -31,7 +31,7 @@ export default function PoliceDashboard() {
       {/* Header */}
       <div className="flex flex-col md:flex-row items-center justify-between bg-blue-100 p-6 rounded-lg shadow-md">
         <div>
-          <h1 className="text-3xl font-bold text-blue-900">👮 Police Dashboard</h1>
+          <h1 className="text-3xl font-bold text-blue-900">Police Dashboard</h1>
           <p className="text-blue-700 mt-2 max-w-lg">
             Access legal sections, their details, documents, and procedures required during police investigations.
           </p>
@@ -52,7 +52,7 @@ export default function PoliceDashboard() {
           <li>Browse through legal sections listed below.</li>
           <li>Click on any section to view detailed investigation steps, documents, and references.</li>
           <li>Use the Ask AI page to clarify legal doubts.</li>
-          <li>Admin dashboard is available for content management.</li>
+          <li>Filter sections according to types,number,names ,etc.</li>
         </ul>
       </section>
 
@@ -60,7 +60,7 @@ export default function PoliceDashboard() {
       <section>
           {/* ⚖️ Law Types Overview */}
         <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-2">⚖️ Law Types Included</h3>
+          <h3 className="text-lg font-semibold mb-2">Law Types Included</h3>
           <div className="flex flex-wrap gap-3">
             {[...new Set(sections.map((s) => s.lawType).filter(Boolean))].map(
               (type, i) => (
@@ -75,7 +75,7 @@ export default function PoliceDashboard() {
           </div>
         </div> 
         
-        <h2 className="text-2xl font-semibold mb-4">📂 Legal Sections</h2>
+        <h2 className="text-2xl font-semibold mb-5 py-5 text-center rounded-lg bg-slate-600 text-white">Legal Sections</h2>
         
         {loading ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

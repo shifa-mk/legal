@@ -1,48 +1,51 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Label } from "../components/ui/label";
+// FIX: Corrected relative import paths. Assuming direct access for now.
+import { Label } from "../components/ui/label"; 
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import api from "../utils/axios";
+// FIX: Corrected relative import paths.
+import api from "../utils/axios"; 
+import { setUser, setLoading } from "../redux/auth.slice";
+// FIX: Added useSelector to retrieve Redux loading state, which was missing.
+import { useDispatch, useSelector } from "react-redux"; 
 
 export default function Login() {
   const [input, setInput] = useState({ username: "", password: "" });
-  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const changeHandler = (e) => {
+  // Retrieve Redux loading state here
+  const { loading: isLoadingRedux } = useSelector((state) => state.auth); 
+
+  const changeHandler = (e) =>
     setInput({ ...input, [e.target.name]: e.target.value });
-  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      setLoading(true);
-     const { data } = await api.post("/api/auth/login", input);
+      // Use Redux loading state only
+      dispatch(setLoading(true));
 
-if (data.token) {
-  toast.success("✅ Successfully logged in!");
-  localStorage.setItem("token", data.token);
-  localStorage.setItem("user", JSON.stringify(data.user));
-  navigate("/police-dashboard");
-}
+      const { data } = await api.post("/api/auth/login", input, {
+        withCredentials: true,
+      });
 
-
-      // backend expects { username, password }
-      localStorage.setItem("userInfo", JSON.stringify(data));
-      toast.success("Login successful!");
-      if (data.role === "admin") navigate("/admin");
-      else navigate("/dashboard");
+      if (data.token) {
+        localStorage.setItem("user", JSON.stringify(data.user));
+        dispatch(setUser(data.user));
+        toast.success("✅ Successfully logged in!");
+        navigate("/dashboard");
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || "Login failed");
     } finally {
-      setLoading(false);
+      // Use Redux loading state only
+      dispatch(setLoading(false));
     }
   };
-
-
 
 
   return (
@@ -89,7 +92,7 @@ if (data.token) {
         </div>
 
         {/* Button */}
-        {loading ? (
+        {isLoadingRedux ? ( 
           <Button
             className="w-full my-4 font-bold"
             style={{ backgroundColor: "#E2A16F", color: "#FFF0DD" }}

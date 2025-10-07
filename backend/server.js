@@ -37,48 +37,68 @@ let embedder;
 app.use("/api/auth", authRoutes);
 app.use("/api/sections", sectionRoutes);
 
+// ... in your Express/Node.js route file (e.g., api/ai.js)
+
+import { embedQuery, loadEmbedder } from './utils/embedding.js'; // Adjust path as needed
+
+
+// You should call this once when your server starts
+// loadEmbedder(); 
+
 app.post("/api/ai/ask", async (req, res) => {
+  const { query } = req.body;
+
+  if (!query) {
+    return res.status(400).json({ message: "Query is required." });
+  }
+
   try {
-    const { query } = req.body;
-    if (!query?.trim()) return res.status(400).json({ message: "Query is required" });
+    // 1. Generate the 768-D query vector
+    const queryVector = await embedQuery(query); 
+    
+    // 2. Perform the Vector Search using the correct 768-D vector
+    const matchedSections = await Section.aggregate([
+      {
+        // ASSUMES you have created a MongoDB Atlas Vector Search Index on 'embedding'
+        $vectorSearch: {
+          queryVector: queryVector,
+          path: "embedding",
+          numCandidates: 50, // Number of initial candidates to check
+          limit: 3,           // Number of top results to return
+          index: "vector_index", // <-- REPLACE with your actual index name
+        },
+      },
+      {
+        $project: {
+          // Include all the fields you need for the frontend and the score
+          _id: 1, 
+          sectionNumber: 1, 
+          lawType: 1, 
+          sectionName: 1, 
+          description: 1,
+          punishment: 1, 
+          investigationSteps: 1, 
+          requiredDocuments: 1, 
+          relatedSections: 1, 
+          referenceLink: 1, 
+          notesForPolice: 1, 
+          importantCases: 1, 
+          score: { $meta: "vectorSearchScore" }, // Get the relevance score
+        },
+      },
+      // You can add more stages here (e.g., to filter out low scores)
+    ]);
 
-    // Proper embedding (sentence-level)
-    const output = await embedder(query, { pooling: "mean", normalize: true });
-    const queryVec = Array.from(output.data);
-
-    // Load stored sections
-    const sections = await Section.find({ embedding: { $exists: true, $ne: [] } }).lean();
-    const results = [];
-
-    for (const s of sections) {
-      const sectionVec = s.embedding;
-      const score = cosineSimilarity(queryVec, sectionVec);
-      results.push({ section: s, score });
+    if (matchedSections.length === 0) {
+      return res.json({ message: "No relevant sections found." });
     }
 
-    results.sort((a, b) => b.score - a.score);
-    const topScore = results[0]?.score || 0;
-    let matchedSections = [];
+    // 3. Send the highly relevant sections back to the frontend
+    res.json({ matchedSections: matchedSections });
 
-    if (topScore < 0.55) {
-      // Fallback keyword search
-      const tokens = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
-      const orConditions = tokens.flatMap(word => [
-        { sectionNumber: { $regex: word, $options: "i" } },
-        { sectionName: { $regex: word, $options: "i" } },
-        { description: { $regex: word, $options: "i" } },
-        { lawType: { $regex: word, $options: "i" } },
-        { tags: { $regex: word, $options: "i" } },
-      ]);
-      matchedSections = await Section.find({ $or: orConditions }).limit(3);
-    } else {
-      matchedSections = results.slice(0, 3).map(r => r.section);
-    }
-
-    res.json({ query, matchedSections });
-  } catch (err) {
-    console.error("askAI error:", err);
-    res.status(500).json({ message: "Server error", error: err.message });
+  } catch (error) {
+    console.error("Vector search failed:", error);
+    res.status(500).json({ message: "Server error during AI search." });
   }
 });
 
