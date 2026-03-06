@@ -1,12 +1,24 @@
 import { useState } from "react";
 import api from "../utils/axios";
-
+import { useNavigate } from "react-router-dom";
 export default function AskAI() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
+
+  // 🎤 Speech to Text
+  const startListening = () => {
+    const recognition = new window.webkitSpeechRecognition();
+    recognition.onresult = (event) => {
+      setQuery(event.results[0][0].transcript);
+    };
+    recognition.start();
+  };
+
+  // 🔍 Ask AI
   const askAI = async () => {
     if (!query.trim()) {
       setMessage("⚠️ Please enter a query.");
@@ -23,7 +35,7 @@ export default function AskAI() {
       if (data.matchedSections?.length) {
         setResults(data.matchedSections);
       } else {
-        setMessage(data.message || "No sections found.");
+        setMessage("No relevant sections found.");
       }
     } catch (err) {
       setMessage("❌ Error: " + (err.response?.data?.message || "Request failed"));
@@ -32,19 +44,46 @@ export default function AskAI() {
     }
   };
 
+
+
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4 text-gray-800">🔎 Search Legal Sections</h1>
+      <h1 className="text-2xl font-bold mb-4 text-gray-800">
+        🔎 Ask Legal AI
+      </h1>
 
-      {/* Search Box */}
+      {/* 🎤 + FIR Buttons */}
+      <div className="flex gap-3 mb-3">
+        <button
+          onClick={startListening}
+          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+        >
+          Speak
+        </button>
+
+        <button
+          onClick={() =>
+            navigate("/generate-fir", {
+              state: { complaint: query, sections: results }
+            })
+          }
+          className="bg-purple-600 text-white px-4 py-2 rounded"
+        >
+          Generate FIR
+        </button>
+
+      </div>
+
+      {/* Input */}
       <textarea
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Type your query (e.g., 'Arms Act Section 25' or 'illegal weapon manufacturing')..."
+        placeholder="Describe the incident (e.g., 'car theft', 'illegal weapon possession')..."
         className="w-full border p-3 rounded mb-4 shadow-sm focus:ring-2 focus:ring-blue-500"
         rows={4}
       />
 
+      {/* Search Button */}
       <button
         onClick={askAI}
         disabled={loading}
@@ -55,7 +94,9 @@ export default function AskAI() {
 
       {/* Message */}
       {message && (
-        <div className="mt-4 p-4 bg-gray-100 border rounded text-gray-700">{message}</div>
+        <div className="mt-4 p-4 bg-gray-100 border rounded text-gray-700">
+          {message}
+        </div>
       )}
 
       {/* Results */}
@@ -63,22 +104,31 @@ export default function AskAI() {
         <div className="mt-6 space-y-6">
           {results.map((sec) => (
             <div key={sec._id} className="p-6 bg-white border rounded-xl shadow-sm">
-              <h2 className="text-xl font-bold text-gray-800 mb-2">
+
+              <h2 className="text-xl font-bold text-gray-800 mb-1">
                 Section {sec.sectionNumber} — {sec.lawType}
               </h2>
+
+              {/* 📊 Confidence Score */}
+              {sec.score && (
+                <p className="text-sm text-green-600 mb-2">
+                  Confidence: {(sec.score * 100).toFixed(2)}%
+                </p>
+              )}
+
               <p className="text-gray-700 mb-3 italic">{sec.sectionName}</p>
               <p className="text-gray-600 mb-4">{sec.description}</p>
 
               {sec.punishment && (
                 <p className="mb-2">
-                  <span className="font-semibold text-gray-800">Punishment:</span> {sec.punishment}
+                  <span className="font-semibold">Punishment:</span> {sec.punishment}
                 </p>
               )}
 
               {sec.investigationSteps?.length > 0 && (
                 <div className="mb-3">
-                  <h3 className="font-semibold text-gray-800">Investigation Steps:</h3>
-                  <ul className="list-disc list-inside text-gray-700">
+                  <h3 className="font-semibold">Investigation Steps:</h3>
+                  <ul className="list-disc list-inside">
                     {sec.investigationSteps.map((step, i) => (
                       <li key={i}>{step}</li>
                     ))}
@@ -88,8 +138,8 @@ export default function AskAI() {
 
               {sec.requiredDocuments?.length > 0 && (
                 <div className="mb-3">
-                  <h3 className="font-semibold text-gray-800">Required Documents:</h3>
-                  <ul className="list-disc list-inside text-gray-700">
+                  <h3 className="font-semibold">Required Documents:</h3>
+                  <ul className="list-disc list-inside">
                     {sec.requiredDocuments.map((doc, i) => (
                       <li key={i}>{doc}</li>
                     ))}
@@ -99,43 +149,39 @@ export default function AskAI() {
 
               {sec.relatedSections?.length > 0 && (
                 <div className="mb-3">
-                  <h3 className="font-semibold text-gray-800">Related Sections:</h3>
-                  <p className="text-gray-700">{sec.relatedSections.join(", ")}</p>
+                  <h3 className="font-semibold">Related Sections:</h3>
+                  <p>{sec.relatedSections.join(", ")}</p>
                 </div>
               )}
 
               {sec.referenceLink && (
-                <div className="mb-3">
-                  <a
-                    href={sec.referenceLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 underline"
-                  >
-                    📘 View Reference
-                  </a>
-                </div>
+                <a
+                  href={sec.referenceLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 underline"
+                >
+                  📘 View Reference
+                </a>
               )}
 
               {sec.notesForPolice && (
-                <div className="mb-3">
-                  <h3 className="font-semibold text-gray-800">Notes for Police:</h3>
-                  <p className="text-gray-700">{sec.notesForPolice}</p>
+                <div className="mt-3">
+                  <h3 className="font-semibold">Notes for Police:</h3>
+                  <p>{sec.notesForPolice}</p>
                 </div>
               )}
 
               {sec.importantCases?.length > 0 && (
-                <div className="mb-3">
-                  <h3 className="font-semibold text-gray-800">Important Cases:</h3>
-                  <div className="space-y-2">
-                    {sec.importantCases.map((c, i) => (
-                      <div key={i} className="p-3 border rounded-md bg-gray-50">
-                        <p className="font-semibold text-gray-800">{c.caseName}</p>
-                        <p className="text-sm text-gray-600">{c.citation}</p>
-                        <p className="text-gray-700 mt-1">{c.summary}</p>
-                      </div>
-                    ))}
-                  </div>
+                <div className="mt-3">
+                  <h3 className="font-semibold">Important Cases:</h3>
+                  {sec.importantCases.map((c, i) => (
+                    <div key={i} className="p-3 border rounded bg-gray-50 mt-2">
+                      <p className="font-semibold">{c.caseName}</p>
+                      <p className="text-sm text-gray-600">{c.citation}</p>
+                      <p>{c.summary}</p>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

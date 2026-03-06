@@ -12,6 +12,7 @@ import Navbar from "./components/Navbar";
 import Signup from "./pages/SignUp";
 import Profile from "./components/Profile";
 import Footer from "./components/Footer";
+import GenerateFIR from "./pages/GenerateFIR";
 export default function App() {
 const dispatch = useDispatch();
 
@@ -41,6 +42,7 @@ const dispatch = useDispatch();
           <Route path="/sections/:id" element={<SectionDetails />} />
           <Route path="/ask" element={<AskAI />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/generate-fir" element={<GenerateFIR />} />
         </Routes>
       </div>
       <Footer/>

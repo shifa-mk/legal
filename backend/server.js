@@ -46,6 +46,9 @@ import { embedQuery, loadEmbedder } from './utils/embedding.js'; // Adjust path 
 // loadEmbedder(); 
 
 app.post("/api/ai/ask", async (req, res) => {
+  
+   console.log("🔥 AI ROUTE HIT");
+  console.log("BODY:", req.body);
   const { query } = req.body;
 
   if (!query) {
@@ -53,55 +56,45 @@ app.post("/api/ai/ask", async (req, res) => {
   }
 
   try {
-    // 1. Generate the 768-D query vector
-    const queryVector = await embedQuery(query); 
-    
-    // 2. Perform the Vector Search using the correct 768-D vector
-    const matchedSections = await Section.aggregate([
-      {
-        // ASSUMES you have created a MongoDB Atlas Vector Search Index on 'embedding'
-        $vectorSearch: {
-          queryVector: queryVector,
-          path: "embedding",
-          numCandidates: 50, // Number of initial candidates to check
-          limit: 3,           // Number of top results to return
-          index: "vector_index", // <-- REPLACE with your actual index name
-        },
-      },
-      {
-        $project: {
-          // Include all the fields you need for the frontend and the score
-          _id: 1, 
-          sectionNumber: 1, 
-          lawType: 1, 
-          sectionName: 1, 
-          description: 1,
-          punishment: 1, 
-          investigationSteps: 1, 
-          requiredDocuments: 1, 
-          relatedSections: 1, 
-          referenceLink: 1, 
-          notesForPolice: 1, 
-          importantCases: 1, 
-          score: { $meta: "vectorSearchScore" }, // Get the relevance score
-        },
-      },
-      // You can add more stages here (e.g., to filter out low scores)
-    ]);
+    // MUST return 384-dim vector
+    const queryVector = await embedQuery(query);
+const matchedSections = await Section.aggregate([
+  {
+    $vectorSearch: {
+      index: "vector_index",
+      path: "embedding",
+      queryVector,
+      numCandidates: 100,
+      limit: 5,
+    },
+  },
+  {
+   $project: {
+    sectionNumber: 1,
+    lawType: 1,
+    sectionName: 1,
+    description: 1,
+    punishment: 1,
+    investigationSteps: 1,
+    requiredDocuments: 1,
+    relatedSections: 1,
+    referenceLink: 1,
+    notesForPolice: 1,
+    importantCases: 1,
+    score: { $meta: "vectorSearchScore" },
+  },
+  },
+]);
 
-    if (matchedSections.length === 0) {
-      return res.json({ message: "No relevant sections found." });
-    }
+console.log("VECTOR RESULTS:", matchedSections);
 
-    // 3. Send the highly relevant sections back to the frontend
-    res.json({ matchedSections: matchedSections });
+    res.json({ matchedSections });
 
   } catch (error) {
     console.error("Vector search failed:", error);
     res.status(500).json({ message: "Server error during AI search." });
   }
 });
-
 
 // Health check
 app.get("/", (req, res) => res.send({ status: "API is running" }));

@@ -1,33 +1,51 @@
-import Section from "../models/sectionModel.js"; // adjust path if needed
+import Section from "../models/sectionModel.js";
+import { embedQuery } from "../utils/embedding.js";
 
 export const askAI = async (req, res) => {
   try {
+    console.log("🔥 AI ROUTE HIT");
     const { query } = req.body;
+
     if (!query || !query.trim()) {
       return res.status(400).json({ message: "Query is required" });
     }
 
-    // 🔍 MongoDB text + regex search
-    const sections = await Section.find({
-      $or: [
-        { sectionName: { $regex: query, $options: "i" } },
-        { description: { $regex: query, $options: "i" } },
-        { lawType: { $regex: query, $options: "i" } }
-      ]
-    }).limit(10);
+    // 1️⃣ Generate embedding
+    const queryVector = await embedQuery(query);
 
-    if (!sections.length) {
-      return res.json({
-        query,
-        matchedSections: [],
-        message: "No matching section found."
-      });
-    }
+    // 2️⃣ Vector search (WITH SCORE)
+    const vectorResults = await Section.aggregate([
+      {
+        $vectorSearch: {
+          index: "vector_index",
+          path: "embedding",
+          queryVector,
+          numCandidates: 50,
+          limit: 5,
+        },
+      },
+      {
+        $project: {
+          sectionNumber: 1,
+          sectionName: 1,
+          lawType: 1,
+          description: 1,
+          punishment: 1,
+          investigationSteps: 1,
+          requiredDocuments: 1,
+          relatedSections: 1,
+          referenceLink: 1,
+          notesForPolice: 1,
+          importantCases: 1,
+          score: { $meta: "vectorSearchScore" } // ✅ ADD THIS
+        },
+      },
+    ]);
 
-    // ✅ Send back the full section details
+    console.log("VECTOR RESULTS:", vectorResults);
+
     res.json({
-      query,
-      matchedSections: sections
+      matchedSections: vectorResults, // ✅ send directly
     });
 
   } catch (err) {
