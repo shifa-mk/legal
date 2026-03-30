@@ -10,13 +10,14 @@ import cosineSimilarity from "cosine-similarity";
 // Routes
 import authRoutes from "./routes/authroutes.js";
 import sectionRoutes from "./routes/sectionRoutes.js";
+import auditRoutes from "./routes/auditRoutes.js";
 
 dotenv.config();
 
 
 const app = express();
 app.use(express.json());
-app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+app.use(cors({origin: ["http://localhost:3000", "http://192.168.0.117:3000"], credentials: true }));
 
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -37,6 +38,7 @@ let embedder;
 app.use("/api/auth", authRoutes);
 app.use("/api/sections", sectionRoutes);
 
+app.use("/api/audit", auditRoutes);
 // ... in your Express/Node.js route file (e.g., api/ai.js)
 
 import { embedQuery, loadEmbedder } from './utils/embedding.js'; // Adjust path as needed

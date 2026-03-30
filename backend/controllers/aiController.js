@@ -1,6 +1,6 @@
 import Section from "../models/sectionModel.js";
 import { embedQuery } from "../utils/embedding.js";
-
+import AuditLog from "../models/auditLogModel.js";
 export const askAI = async (req, res) => {
   try {
     console.log("🔥 AI ROUTE HIT");
@@ -51,5 +51,20 @@ export const askAI = async (req, res) => {
   } catch (err) {
     console.error("askAI error:", err);
     res.status(500).json({ message: "Server error" });
+  }
+};
+export const logFIR = async (req, res) => {
+  try {
+
+    await AuditLog.create({
+      userId: req.user?._id || null,
+      action: "FIR Generated",
+      details: "FIR created from AI analysis"
+    });
+
+    res.json({ success: true });
+
+  } catch (err) {
+    res.status(500).json({ message: "Log failed" });
   }
 };

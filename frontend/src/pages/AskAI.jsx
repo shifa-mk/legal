@@ -1,6 +1,7 @@
 import { useState } from "react";
 import api from "../utils/axios";
 import { useNavigate } from "react-router-dom";
+
 export default function AskAI() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
@@ -8,7 +9,7 @@ export default function AskAI() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-
+  
   // 🎤 Speech to Text
   const startListening = () => {
     const recognition = new window.webkitSpeechRecognition();

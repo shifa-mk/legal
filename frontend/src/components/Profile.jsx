@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSelector } from "react-redux";
 import { Avatar, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
-import { Mail, Phone, Badge, MapPin } from "lucide-react";
-import { Badge as BadgeUI } from "./ui/badge";
+import { Phone, BadgeCheck, Building2, Globe, Shield } from "lucide-react"; // Added relevant icons
 import UpdateProfileDialog from "./UpdateProfileDialog";
+import AuditLogs from "./TempLogs";
 
 const getCloudinaryUrl = (publicId) =>
   `https://res.cloudinary.com/dihk6mdzv/image/upload/${publicId}`;
@@ -13,79 +13,59 @@ export default function Profile() {
   const { user } = useSelector((store) => store.auth);
   const [open, setOpen] = useState(false);
 
+  // Updated avatar logic: Prioritize user upload, then fallback to male officer placeholder
+  const defaultMalePoliceAvatar = "https://img.freepik.com/free-photo/portrait-indian-police-officer_23-2151014856.jpg";
+
   const avatarUrl = user?.profile?.avatar
     ? user.profile.avatar.startsWith("http")
       ? user.profile.avatar
       : getCloudinaryUrl(user.profile.avatar)
-    : "https://www.shutterstock.com/image-vector/circle-line-simple-design-logo-600nw-2174926871.jpg";
-
-  useEffect(() => {
-    console.log("Police profile loaded:", user);
-  }, [user]);
+    : defaultMalePoliceAvatar;
 
   return (
-    <div>
-     
-
-      <div className="max-w-5xl mx-auto mt-6 p-6 bg-white shadow rounded-2xl">
-        <div className="flex justify-between items-center mb-6">
+    <div className="min-h-screen bg-gray-50 pb-10">
+      <div className="max-w-5xl mx-auto mt-6 p-8 bg-white shadow-lg rounded-2xl">
+        {/* Profile Header */}
+        <div className="flex justify-between items-center mb-10 border-b pb-8">
           <div className="flex items-center gap-6">
-            <Avatar className="h-28 w-28">
-              <AvatarImage src={avatarUrl} alt={user?.fullname || "User"} />
+            <Avatar className="h-32 w-32 border-4 border-blue-100 shadow-sm">
+              <AvatarImage src={avatarUrl} alt={user?.fullname || "User"} className="object-cover" />
             </Avatar>
+
             <div>
-              <h1 className="text-2xl font-semibold">{user?.fullname}</h1>
-              <p className="text-gray-500">{user?.profile?.rank || "Police Officer"}</p>
-              <p className="text-gray-400 text-sm">{user?.profile?.badgeNumber}</p>
+              <h1 className="text-3xl font-bold text-gray-900">{user?.fullname || "Officer Name"}</h1>
+              <p className="text-blue-600 font-semibold text-lg uppercase tracking-wide">
+                {user?.profile?.rank || "Police Officer"}
+              </p>
+              <p className="text-gray-400 text-sm flex items-center gap-1 mt-1">
+                <BadgeCheck size={14} /> Badge: {user?.profile?.badgeNumber || "N/A"}
+              </p>
             </div>
           </div>
-          <Button variant="outline" onClick={() => setOpen(true)}>
+
+          <Button variant="outline" onClick={() => setOpen(true)} className="hover:bg-blue-50 border-blue-200 text-blue-700">
             Update Profile
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div className="flex items-center gap-3">
-            <Mail className="text-gray-600" /> <span>{user?.email}</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <Phone className="text-gray-600" /> <span>{user?.phoneNumber || "N/A"}</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <Badge className="text-gray-600" /> <span>{user?.profile?.rank || "Officer"}</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <MapPin className="text-gray-600" /> <span>{user?.profile?.station || "N/A"}</span>
-          </div>
-        </div>
+        {/* Police Details: 2 Columns, 3 Rows */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8 px-4">
+          {/* Row 1 */}
+          <DetailItem icon={<Phone className="text-blue-600" />} label="Phone Number" value={user?.phoneNumber} />
+          <DetailItem icon={<Building2 className="text-red-600" />} label="Police Station" value={user?.profile?.station} />
 
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-2">Bio</h2>
-          <p>{user?.profile?.bio || "No bio available."}</p>
-        </div>
+          {/* Row 2 */}
+          <DetailItem icon={<Shield className="text-amber-600" />} label="Department" value={user?.profile?.department} />
+          <DetailItem icon={<Globe className="text-green-600" />} label="Region" value={user?.profile?.region} />
 
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-2">Expertise / Skills</h2>
-          <div className="flex flex-wrap gap-2">
-            {user?.profile?.skills?.length > 0
-              ? user.profile.skills.map((skill, idx) => (
-                  <BadgeUI key={idx}>{skill}</BadgeUI>
-                ))
-              : "N/A"}
-          </div>
+          {/* Row 3 */}
+          <DetailItem icon={<BadgeCheck className="text-indigo-600" />} label="Official Rank" value={user?.profile?.rank} />
+          <DetailItem icon={<Shield className="text-purple-600" />} label="Experience" value={user?.profile?.yearsOfService ? `${user.profile.yearsOfService} Years` : "N/A"} />
         </div>
+      </div>
 
-        {/* Optional section: Cases handled */}
-        {user?.profile?.casesHandled?.length > 0 && (
-          <div className="mb-6">
-            <h2 className="text-lg font-semibold mb-2">Cases Handled</h2>
-            <ul className="list-disc ml-6">
-              {user.profile.casesHandled.map((caseItem, idx) => (
-                <li key={idx}>{caseItem}</li>
-              ))}
-            </ul>
-          </div>
-        )}
+      <div className="max-w-5xl mx-auto mt-8">
+        <AuditLogs />
       </div>
 
       <UpdateProfileDialog open={open} setOpen={setOpen} />
@@ -93,3 +73,15 @@ export default function Profile() {
   );
 }
 
+// Small helper component for clean code
+function DetailItem({ icon, label, value }) {
+  return (
+    <div className="flex items-center gap-4 group">
+      <div className="p-3 bg-gray-50 rounded-xl group-hover:bg-blue-50 transition-colors">{icon}</div>
+      <div>
+        <p className="text-xs text-gray-400 uppercase font-bold tracking-tighter">{label}</p>
+        <span className="text-gray-700 font-semibold">{value || "N/A"}</span>
+      </div>
+    </div>
+  );
+}

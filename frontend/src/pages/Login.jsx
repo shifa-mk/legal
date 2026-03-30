@@ -32,12 +32,18 @@ export default function Login() {
 
       const userPayload = data.user || (data.username ? { _id: data._id, username: data.username, role: data.role } : null);
 
-      if (data.token && userPayload) {
-        setAuthToken(data.token);
-        dispatch(setUser(userPayload));
-        toast.success("✅ Successfully logged in!");
-        navigate("/dashboard");
-      }
+     if (data.token && userPayload) {
+  setAuthToken(data.token);
+  
+  // Pass BOTH the user and the token to Redux
+  dispatch(setUser({
+    user: userPayload,
+    token: data.token
+  }));
+  
+  toast.success("✅ Successfully logged in!");
+  navigate("/dashboard");
+}
     } catch (err) {
       toast.error(err.response?.data?.message || "Login failed");
     } finally {

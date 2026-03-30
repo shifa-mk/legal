@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import User from "./models/user.js";
+import User from "../models/user.js";
 
 export const register = async (req, res) => {
   try {
@@ -30,5 +30,52 @@ export const login = async (req, res) => {
     res.json({ token, role: user.role });
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+};
+import cloudinary from "../utils/cloudinary.js"; // Ensure your cloudinary config is correct
+import getDataUri from "../utils/datauri.js"; // Ensure this utility exists
+
+
+export const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user._id; 
+    const { fullname, phoneNumber, rank, badgeNumber, department, station, region, yearsOfService } = req.body;
+    const file = req.file;
+
+    let avatarUrl;
+    if (file) {
+      const fileUri = getDataUri(file);
+      const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+      avatarUrl = cloudResponse.secure_url;
+    }
+
+    const updateData = {
+      fullname,
+      phoneNumber,
+      profile: {
+        rank,
+        badgeNumber,
+        department,
+        station,
+        region,
+        yearsOfService,
+        ...(avatarUrl && { avatar: avatarUrl })
+      }
+    };
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId, 
+      { $set: updateData }, 
+      { new: true }
+    ).select("-password");
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      user: updatedUser
+    });
+  } catch (error) {
+    console.error("Update Error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { jsPDF } from "jspdf";
 import { useLocation } from "react-router-dom";
-
+import api from "../utils/axios";
 export default function GenerateFIR() {
 
   const location = useLocation();
@@ -28,7 +28,7 @@ export default function GenerateFIR() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const generatePDF = () => {
+  const generatePDF = async() => {
 
     const doc = new jsPDF();
     let y = 20;
@@ -173,7 +173,7 @@ export default function GenerateFIR() {
     y += 10;
 
     doc.text("Signature / Thumb Impression of Complainant", 10, y);
-
+    await api.post("/api/ai/fir-log");
     doc.save("FIR_Report.pdf");
   };
 

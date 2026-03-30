@@ -1,7 +1,8 @@
 import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import User from "../models/User.js";
+import User from "../models/user.js";
+
 
 const router = express.Router();
 
@@ -9,7 +10,10 @@ const router = express.Router();
 const generateToken = (id, role) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: "1d" });
 };
-
+import { updateProfile } from "../controllers/authController.js";
+import {authMiddleware } from "../middleware/auth.js";
+import { singleUpload } from "../middleware/multer.js";
+router.put("/update-profile",authMiddleware, singleUpload,updateProfile);
 // =======================
 // @route   POST /api/auth/signup
 // =======================
