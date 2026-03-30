@@ -15,21 +15,47 @@ export const register = async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 };
-
+export const logout = async (req, res) => {
+    try {
+        return res.status(200).cookie("token", "", { maxAge: 0 }).json({
+            message: "Logged out successfully.",
+            success: true
+        });
+    } catch (error) {
+        console.log(error);
+    }
+};
 export const login = async (req, res) => {
   try {
     const { username, password } = req.body;
-    const user = await User.findOne({ username});
+    const user = await User.findOne({ username });
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1d" });
+    const token = jwt.sign(
+      { id: user._id, role: user.role }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: "1d" }
+    );
 
-    res.json({ token, role: user.role });
+    // FIXED: Return the full user object including the profile
+    return res.status(200).json({
+      message: `Welcome back ${user.fullname || user.username}`,
+      success: true,
+      token,
+      user: {
+        _id: user._id,
+        fullname: user.fullname,
+        username: user.username,
+        phoneNumber: user.phoneNumber,
+        role: user.role,
+        profile: user.profile // This ensures your picture and rank show up!
+      }
+    });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: err.message, success: false });
   }
 };
 import cloudinary from "../utils/cloudinary.js"; // Ensure your cloudinary config is correct
@@ -78,4 +104,15 @@ export const updateProfile = async (req, res) => {
     console.error("Update Error:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
+};
+export const getMe = async (req, res) => {
+    try {
+        // req.user.id comes from your isAuthenticated middleware
+        const user = await User.findById(req.user.id).select("-password");
+        if (!user) return res.status(404).json({ success: false });
+        
+        res.status(200).json({ success: true, user });
+    } catch (error) {
+        res.status(500).json({ success: false });
+    }
 };

@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
     user: null,
-    token: null, // Add this
+    token: localStorage.getItem("token") || null, // Initialize from storage so login persists
     loading: false,
 };
 
@@ -11,18 +11,22 @@ const authSlice = createSlice({
     initialState,
     reducers: {
         setUser: (state, action) => {
-            // If your login response returns { user, token }, handle both:
-            if (action.payload?.token) {
-                state.token = action.payload.token;
-                state.user = action.payload.user;
-            } else {
-                // This covers the profile update where only user info comes back
-                state.user = action.payload;
+            // Correctly handles {user, token} from login OR just user from profile update
+            const userData = action.payload?.user || action.payload;
+            const tokenData = action.payload?.token || state.token;
+
+            state.user = userData;
+            state.token = tokenData;
+
+            // Save token to persist login session on refresh
+            if (tokenData) {
+                localStorage.setItem("token", tokenData);
             }
         },
         clearUser: (state) => {
             state.user = null;
             state.token = null;
+            localStorage.removeItem("token"); // Clear storage on logout
         },
         setLoading: (state, action) => {
             state.loading = action.payload;

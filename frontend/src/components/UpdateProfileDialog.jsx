@@ -8,12 +8,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 // FIXED: Changed from /api/v1/user to /api/auth to match your backend router
 const USER_API_END_POINT = "http://localhost:5000/api/auth"; 
 
+// ... (imports remain the same)
+
 export default function UpdateProfileDialog({ open, setOpen }) {
   const { user, token } = useSelector((store) => store.auth);
   const dispatch = useDispatch();
   const [file, setFile] = useState(null);
+  
+  // 1. Keep this as 'fullname' to match your backend destructing
   const [formData, setFormData] = useState({
-    fullName: user?.fullname || "",
+    fullname: user?.fullname || "", 
     phoneNumber: user?.phoneNumber || "",
     rank: user?.profile?.rank || "",
     badgeNumber: user?.profile?.badgeNumber || "",
@@ -56,9 +60,23 @@ export default function UpdateProfileDialog({ open, setOpen }) {
         <DialogHeader><DialogTitle>Update Police Profile</DialogTitle></DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-4 py-4">
           <div className="grid grid-cols-2 gap-4">
-            <input name="fullName" value={formData.fullName} onChange={handleChange} placeholder="Full Name" className="border p-2 rounded" />
-            <input name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} placeholder="Phone Number" className="border p-2 rounded" />
+            {/* FIXED: name must be 'fullname' exactly to match the state key */}
+            <input 
+              name="fullname" 
+              value={formData.fullname} 
+              onChange={handleChange} 
+              placeholder="Full Name" 
+              className="border p-2 rounded" 
+            />
+            <input 
+              name="phoneNumber" 
+              value={formData.phoneNumber} 
+              onChange={handleChange} 
+              placeholder="Phone Number" 
+              className="border p-2 rounded" 
+            />
           </div>
+          {/* ... other inputs (ensure names match state keys) ... */}
           <div className="grid grid-cols-2 gap-4">
             <input name="rank" value={formData.rank} onChange={handleChange} placeholder="Rank" className="border p-2 rounded" />
             <input name="badgeNumber" value={formData.badgeNumber} onChange={handleChange} placeholder="Badge Number" className="border p-2 rounded" />

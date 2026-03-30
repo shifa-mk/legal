@@ -1,35 +1,29 @@
 import { useState } from "react";
 import { useSelector } from "react-redux";
-import { Avatar, AvatarImage } from "./ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar"; // Added AvatarFallback
 import { Button } from "./ui/button";
-import { Phone, BadgeCheck, Building2, Globe, Shield } from "lucide-react"; // Added relevant icons
+import { Phone, BadgeCheck, Building2, Globe, Shield, User as UserIcon } from "lucide-react"; 
 import UpdateProfileDialog from "./UpdateProfileDialog";
 import AuditLogs from "./TempLogs";
-
-const getCloudinaryUrl = (publicId) =>
-  `https://res.cloudinary.com/dihk6mdzv/image/upload/${publicId}`;
 
 export default function Profile() {
   const { user } = useSelector((store) => store.auth);
   const [open, setOpen] = useState(false);
 
-  // Updated avatar logic: Prioritize user upload, then fallback to male officer placeholder
-  const defaultMalePoliceAvatar = "https://img.freepik.com/free-photo/portrait-indian-police-officer_23-2151014856.jpg";
-
-  const avatarUrl = user?.profile?.avatar
-    ? user.profile.avatar.startsWith("http")
-      ? user.profile.avatar
-      : getCloudinaryUrl(user.profile.avatar)
-    : defaultMalePoliceAvatar;
+  // Directly use the avatar URL from the profile object. No default image link.
+  const avatarUrl = user?.profile?.avatar;
 
   return (
     <div className="min-h-screen bg-gray-50 pb-10">
       <div className="max-w-5xl mx-auto mt-6 p-8 bg-white shadow-lg rounded-2xl">
-        {/* Profile Header */}
         <div className="flex justify-between items-center mb-10 border-b pb-8">
           <div className="flex items-center gap-6">
             <Avatar className="h-32 w-32 border-4 border-blue-100 shadow-sm">
-              <AvatarImage src={avatarUrl} alt={user?.fullname || "User"} className="object-cover" />
+              <AvatarImage src={avatarUrl} alt={user?.fullname} className="object-cover" />
+              {/* This shows a professional icon if there is no photo */}
+              <AvatarFallback className="bg-blue-50">
+                <UserIcon className="h-16 w-16 text-blue-400" />
+              </AvatarFallback>
             </Avatar>
 
             <div>
@@ -48,17 +42,11 @@ export default function Profile() {
           </Button>
         </div>
 
-        {/* Police Details: 2 Columns, 3 Rows */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8 px-4">
-          {/* Row 1 */}
           <DetailItem icon={<Phone className="text-blue-600" />} label="Phone Number" value={user?.phoneNumber} />
           <DetailItem icon={<Building2 className="text-red-600" />} label="Police Station" value={user?.profile?.station} />
-
-          {/* Row 2 */}
           <DetailItem icon={<Shield className="text-amber-600" />} label="Department" value={user?.profile?.department} />
           <DetailItem icon={<Globe className="text-green-600" />} label="Region" value={user?.profile?.region} />
-
-          {/* Row 3 */}
           <DetailItem icon={<BadgeCheck className="text-indigo-600" />} label="Official Rank" value={user?.profile?.rank} />
           <DetailItem icon={<Shield className="text-purple-600" />} label="Experience" value={user?.profile?.yearsOfService ? `${user.profile.yearsOfService} Years` : "N/A"} />
         </div>
@@ -73,7 +61,6 @@ export default function Profile() {
   );
 }
 
-// Small helper component for clean code
 function DetailItem({ icon, label, value }) {
   return (
     <div className="flex items-center gap-4 group">

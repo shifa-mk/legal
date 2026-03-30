@@ -10,7 +10,7 @@ const router = express.Router();
 const generateToken = (id, role) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: "1d" });
 };
-import { updateProfile } from "../controllers/authController.js";
+import { updateProfile ,getMe} from "../controllers/authController.js";
 import {authMiddleware } from "../middleware/auth.js";
 import { singleUpload } from "../middleware/multer.js";
 router.put("/update-profile",authMiddleware, singleUpload,updateProfile);
@@ -87,5 +87,5 @@ router.post("/login", async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
-
+router.get("/me", authMiddleware, getMe);
 export default router;

@@ -13,20 +13,33 @@ import Signup from "./pages/SignUp";
 import Profile from "./components/Profile";
 import Footer from "./components/Footer";
 import GenerateFIR from "./pages/GenerateFIR";
-export default function App() {
-const dispatch = useDispatch();
+
+
+import axios from "axios";
+
+
+function App() {
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser && storedUser !== "undefined") {
+    const loadUser = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
       try {
-        dispatch(setUser(JSON.parse(storedUser)));
+        const res = await axios.get("http://localhost:5000/api/auth/me", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.data.success) {
+          dispatch(setUser(res.data.user)); // This fills the "N/A" fields with real data
+        }
       } catch (err) {
-        console.error("Failed to parse user from localStorage:", err);
-        localStorage.removeItem("user");
+        localStorage.removeItem("token"); // Token expired or invalid
       }
-    }
+    };
+    loadUser();
   }, [dispatch]);
+
 
   return (
     <>
@@ -49,3 +62,4 @@ const dispatch = useDispatch();
     </>
   );
 }
+export default App;
