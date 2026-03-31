@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { setUser } from "../redux/auth.slice"; 
 import { Button } from "./ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "./ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle} from "./ui/dialog";
 
 // FIXED: Changed from /api/v1/user to /api/auth to match your backend router
 const USER_API_END_POINT = "http://localhost:5000/api/auth"; 
@@ -90,7 +90,7 @@ export default function UpdateProfileDialog({ open, setOpen }) {
             <input name="yearsOfService" value={formData.yearsOfService} onChange={handleChange} placeholder="Years of Service" className="border p-2 rounded" />
           </div>
           <input type="file" accept="image/*" onChange={handleFileChange} className="border p-1 text-sm rounded" />
-          <DialogFooter><Button type="submit" className="w-full bg-blue-600">Save Changes</Button></DialogFooter>
+          <Button type="submit" className="w-full bg-blue-600">Save Changes</Button>
         </form>
       </DialogContent>
     </Dialog>

@@ -10,7 +10,13 @@ import cosineSimilarity from "cosine-similarity";
 // Routes
 import authRoutes from "./routes/authroutes.js";
 import sectionRoutes from "./routes/sectionRoutes.js";
-import auditRoutes from "./routes/auditRoutes.js";
+import auditRoutes from "./routes/temps.js";
+
+// server.js
+import aiRoutes from "./routes/temps.js";
+
+// Mount it directly to the root or just /api
+
 
 dotenv.config();
 
@@ -37,7 +43,7 @@ let embedder;
 // API routes
 app.use("/api/auth", authRoutes);
 app.use("/api/sections", sectionRoutes);
-
+app.use("/api/ai", aiRoutes);
 app.use("/api/audit", auditRoutes);
 // ... in your Express/Node.js route file (e.g., api/ai.js)
 

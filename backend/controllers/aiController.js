@@ -1,4 +1,4 @@
-import Section from "../models/sectionModel.js";
+import Section from "../models/section.js";
 import { embedQuery } from "../utils/embedding.js";
 import AuditLog from "../models/auditLogModel.js";
 export const askAI = async (req, res) => {

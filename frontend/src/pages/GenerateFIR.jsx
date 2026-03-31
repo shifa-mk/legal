@@ -2,7 +2,9 @@ import { useState } from "react";
 import { jsPDF } from "jspdf";
 import { useLocation } from "react-router-dom";
 import api from "../utils/axios";
+
 export default function GenerateFIR() {
+  
 
   const location = useLocation();
 
@@ -29,7 +31,21 @@ export default function GenerateFIR() {
   };
 
   const generatePDF = async() => {
+             try {
+    // 1. Get the token (Assuming it's in localStorage or Redux)
+    const token = localStorage.getItem("token"); 
 
+    // 2. Pass it in the headers
+    const response = await api.post("/api/ai/generate-fir", form, {
+      headers: {
+        Authorization: `Bearer ${token}` 
+      }
+    });
+
+    console.log("Success:", response.data);
+  } catch (error) {
+    console.error("Error generating FIR:", error);
+  }
     const doc = new jsPDF();
     let y = 20;
 
@@ -173,7 +189,7 @@ export default function GenerateFIR() {
     y += 10;
 
     doc.text("Signature / Thumb Impression of Complainant", 10, y);
-    await api.post("/api/ai/fir-log");
+    await api.post("/api/ai/generate-fir");
     doc.save("FIR_Report.pdf");
   };
 
